@@ -1,0 +1,30 @@
+name: gazaOS_Commites
+
+on:
+  push:
+    branches:
+      - main  # You can change this to any branch you want
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send commit info to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          AUTHOR_NAME="${{ github.actor }}"
+          TEXT="🛠 New Commit in *${{ github.repository }}*\n Author: *${AUTHOR_NAME}*\n\n Message: *${COMMIT_MESSAGE}*\n🔗 [View Commit](${COMMIT_URL})"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="${TEXT}" \
+            -d parse_mode="Markdown"
+            
